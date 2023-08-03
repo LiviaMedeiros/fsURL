@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import { sep } from 'node:path';
+import { cwd, emitWarning } from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 // list indices of arguments that should be converted
@@ -40,11 +41,11 @@ const processedArgs = {
 // in case of this warning, new methods should be added according to https://nodejs.org/api/fs.html#promises-api
 const unsupported = Object.keys(fs).filter(_ => processedArgs[_] === undefined).map(_ => `fsURL.${_}`);
 if (unsupported.length)
-  process.emitWarning(`${unsupported.join(', ')} is not supported`);
+  emitWarning(`${unsupported.join(', ')} is not supported`);
 
 // this can be a string literal if cwd does not change
 const cwdURL = {
-  [Symbol.toPrimitive]: () => pathToFileURL(process.cwd() + sep).href
+  [Symbol.toPrimitive]: () => pathToFileURL(cwd() + sep).href
 };
 
 const fsURL = Object.fromEntries(Object.entries(processedArgs).map(([_, $]) => [_, (_ = fs[_]) && ($ = new Set($)).size ? new Proxy(_, {
